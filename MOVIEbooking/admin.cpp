@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <regex>
 #include <fstream>
+#include <limits>
 
 void showAdminConsole() {
     std::string password = "admin";
@@ -133,7 +134,7 @@ void showAdminConsole() {
 }
 
 void uploadMovie() {
-     Movie movie;
+    Movie movie;
     std::string input;
 
     clearScreen();
@@ -731,6 +732,7 @@ void modifyMovieInfo() {
     while (!isValidIndex) {
         std::cout << "Select the index of the movie to modify (1-" << movieTitles.size() << "): ";
         std::getline(std::cin, input);
+        std::cout << '\n'; // Add a space
 
         if (input == "abort") {
             std::cout << "Movie modification canceled.\n";
@@ -750,126 +752,248 @@ void modifyMovieInfo() {
     std::string movieTitle = movieTitles[selectedIndex - 1];
     Movie& movie = movies[movieTitle];
 
-    while (true) {
-        std::cout << "'abort' to cancel.\n";
-        std::cout << "Movie title (" << movie.title <<"): ";
+    bool modifyAnother = true;
+    while (modifyAnother) {
+        clearScreen();
+
+        std::cout << "Select the aspect to modify:\n";
+        std::cout << "1. Movie title (" << movie.title << ")\n";
+        std::cout << "2. Price (" << movie.price << ")\n";
+        std::cout << "3. Duration (" << movie.duration << ")\n";
+        std::cout << "4. Cinema number (" << movie.cinema <<")\n";
+        std::cout << "5. Available times\n";
+        std::cout << "Enter 'abort' to cancel.\n";
+        std::cout << "Enter the index of the aspect to modify (1-4): ";
         std::getline(std::cin, input);
+        std::cout << '\n'; // Add a space
 
         if (input == "abort") {
             std::cout << "Movie modification canceled.\n";
             return;
         }
 
-        if (input.empty()) {
-            std::cout << "Invalid movie title!\n";
-        } else {
-            movie.title = input;
-            break;
-        }
-    }
+        if (input == "1") {
+            std::cout << "'abort' to cancel.\n";
+            std::cout << "Movie title (" << movie.title << "): ";
+            std::getline(std::cin, input);
+            std::cout << '\n'; // Add a space
 
-    while (true) {
-        std::cout << "Price (" << movie.price << "): ";
-        std::getline(std::cin, input);
+            if (input == "abort") {
+                std::cout << "Movie modification canceled.\n";
+                return;
+            }
 
-        if (input == "abort") {
-            std::cout << "Movie modification canceled.\n";
-            return;
-        }
+            if (input.empty()) {
+                std::cout << "Invalid movie title!\n";
 
-        std::stringstream ss(input);
-        if (ss >> movie.price && movie.price > 0.0) {
-            break;
-        } else {
-            std::cout << "Invalid price!\n";
-        }
-    }
+                std::cout << "Press Enter to continue...";
+                std::cin.ignore();
+            } else {
+                movie.title = input;
+                std::cout << "Movie title modified successfully!\n";
+                saveDataToFile();
+            }
+        } else if (input == "2") {
+            while (true) {
+                std::cout << "Price (" << movie.price << "): ";
+                std::getline(std::cin, input);
+                std::cout << '\n'; // Add a space
 
-    while (true) {
-        std::cout << "Duration (hh:mm:ss) (" << movie.duration << "): ";
-        std::getline(std::cin, input);
+                if (input == "abort") {
+                    std::cout << "Movie modification canceled.\n";
+                    return;
+                }
 
-        if (input == "abort") {
-            std::cout << "Movie modification canceled.\n";
-            return;
-        }
+                std::stringstream ss(input);
+                if (ss >> movie.price && movie.price > 0.0) {
+                    std::cout << "Price modified successfully!\n";
+                    saveDataToFile();
+                    break;
+                } else {
+                    std::cout << "Invalid price!\n";
+                    std::cout << "Press Enter to continue...";
+                    system("pause");
+                }
+                system("pause");
+            }
+        } else if (input == "3") {
+            while (true) {
+                std::cout << "Duration (hh:mm:ss) (" << movie.duration << "): ";
+                std::getline(std::cin, input);
+                std::cout << '\n'; // Add a space
 
-        if (isValidDurationFormat(input)) {
-            movie.duration = input;
-            break;
-        } else {
-            std::cout << "Invalid duration! Use the format 'hh:mm:ss'.\n";
-        }
-    }
+                if (input == "abort") {
+                    std::cout << "Movie modification canceled.\n";
+                    return;
+                }
 
-    clearScreen();
+                if (isValidDurationFormat(input)) {
+                    movie.duration = input;
+                    std::cout << "Duration modified successfully!\n";
+                    saveDataToFile();
+                    break;
+                } else {
+                    std::cout << "Invalid duration! Use the format 'hh:mm:ss'.\n";
+                }
+                system("pause");
+            }
+        } else if (input == "4") {
+            while (true) {
+                clearScreen();
 
-    while (true) {
-    std::cout << "Available times:\n";
-    std::cout << "'abort' to cancel.\n";
+                std::cout << "Cinema List:\n";
+                std::cout << "'abort' to cancel.\n";
 
-    for (unsigned int i = 0; i < movie.availableTimes.size(); ++i) {
-    std::cout << i + 1 << ". " << movie.availableTimes[i] << std::endl;
-}
+                for (unsigned int i = 0; i < 3; ++i) {
+                    std::cout << i + 1 << ". Cinema " << i + 1 << std::endl;
+                }
 
+                std::cout << "Select the index of the cinema: ";
+                std::getline(std::cin, input);
+                std::cout << '\n';
 
-    std::cout << "Select the index of the time to modify: ";
-    std::getline(std::cin, input);
+                if (input == "abort") {
+                    std::cout << "Movie modification canceled.\n";
+                    return;
+                }
 
-    if (input == "abort") {
-        std::cout << "Movie modification canceled.\n";
-        return;
-    }
+                if (input == "1" || input == "2" || input == "3"){
+                    movie.cinema = "Cinema " + input;
+                    std::cout << "Cinema modified successfully!\n";
+                    saveDataToFile();
+                    break;
+                } else {
+                    std::cout << "Invalid input!.\n";
 
-    if (std::isdigit(input[0])) {
-        int index = std::stoi(input) - 1;
-        if (index >= 0 && static_cast<size_t>(index) < movie.availableTimes.size()) {
-//
+                }
+                system("pause");
+            }
 
-    std::string selectedTime = movie.availableTimes[index];
-    std::cout << "Selected time: " << selectedTime << std::endl;
+        } else if (input == "5") {
+            while (true) {
+                clearScreen();
 
-    while (true) {
-        std::cout << "Enter the modified time: ";
-        std::getline(std::cin, input);
+                std::cout << "Available times:\n";
+                std::cout << "'abort' to cancel.\n";
 
-    if (isValidTimeFormat(input)) {
-        movie.availableTimes[index] = input; // Update the vector with the modified time
-        std::cout << "Time modified successfully!\n";
-        break;
-    } else {
-        std::cout << "Invalid time format! Use 'hh:mmAM' or 'hh:mmPM'.\n";
-    }
-}
+                for (unsigned int i = 0; i < movie.availableTimes.size(); ++i) {
+                    std::cout << i + 1 << ". " << movie.availableTimes[i] << std::endl;
+                }
 
-// ...
+                std::cout << "\nA. Add Time\n";
+                std::cout << "S. Save Changes\n";
 
+                std::cout << "Select the index of the time to modify: ";
+                std::getline(std::cin, input);
+                std::cout << '\n'; // Add a space
+
+                if (input == "abort") {
+                    std::cout << "Movie modification canceled.\n";
+                    return;
+                }
+
+                if (input == "A") {
+                    std::cout << "Enter a new time: ";
+                    std::getline(std::cin, input);
+                    std::cout << '\n'; // Add a space
+
+                    if (input == "abort") {
+                        std::cout << "Movie modification canceled.\n";
+                        return;
+                    }
+
+                    if (isValidTimeFormat(input)) {
+                        // Check if the time already exists in the vector
+                        if (input[0] == '0') input.erase(0, 1);
+                        if (std::find(movie.availableTimes.begin(), movie.availableTimes.end(), input) != movie.availableTimes.end()) {
+                            std::cout << "Time already exists!\n";
+                        } else {
+                            movie.availableTimes.push_back(input); // Add the new time to the vector
+                            std::cout << "Time added successfully!\n";
+
+                            // Display the added time and its index
+                            int addedIndex = movie.availableTimes.size();
+                            std::cout << "Added time: " << movie.availableTimes[addedIndex - 1] << ", Index: " << addedIndex << std::endl;
+
+                        }
+                    } else {
+                        std::cout << "Invalid time format! Use 'hh:mmAM' or 'hh:mmPM'.\n";
+                    }
+                } else if (input == "S") {
+                    std::cout << "Saving modified data...\n";
+                    saveDataToFile(); // Save the modified data to the file
+                    std::cout << "Data saved successfully!\n";
+                    break; // Exit the inner loop and proceed to the next iteration
+                } else if (std::isdigit(input[0])) {
+                    int index = std::stoi(input) - 1;
+                    if (index >= 0 && static_cast<size_t>(index) < movie.availableTimes.size()) {
+                        std::string selectedTime = movie.availableTimes[index];
+                        std::cout << "Selected time: " << selectedTime << std::endl;
+
+                        std::cout << "Choose an action (A: modify, B: delete): ";
+                        std::getline(std::cin, input);
+                        std::cout << '\n'; // Add a space
+
+                        if (input == "abort") {
+                            std::cout << "Movie modification canceled.\n";
+                            return;
+                        }
+
+                        if (input == "A") {
+                            std::cout << "Enter a new time: ";
+                            std::getline(std::cin, input);
+                            std::cout << '\n'; // Add a space
+
+                            if (input == "abort") {
+                                std::cout << "Movie modification canceled.\n";
+                                return;
+                            }
+
+                            if (isValidTimeFormat(input)) {
+                                if (input[0] == '0') input.erase(0, 1);
+                                // Check if the time already exists in the vector
+                                if (std::find(movie.availableTimes.begin(), movie.availableTimes.end(), input) != movie.availableTimes.end()) {
+                                    std::cout << "Time already exists!\n";
+                                } else {
+                                    movie.availableTimes[index] = input;
+                                    std::cout << "Time modified!\n";
+                                }
+                            } else {
+                                std::cout << "Invalid time format! Use 'hh:mmAM' or 'hh:mmPM'.\n";
+                            }
+                        } else if (input == "B") {
+                            movie.availableTimes.erase(movie.availableTimes.begin() + index); // Delete the selected time
+                            std::cout << "Time deleted successfully!\n";
+                        } else {
+                            std::cout << "Invalid action! Choose 'A' to modify or 'B' to delete.\n";
+                        }
+                    } else {
+                        std::cout << "Invalid index! Please enter a valid index.\n";
+                    }
+                } else {
+                    std::cout << "Invalid input! Please enter a valid index or 'A'.\n";
+                }
+                system("pause");
+            }
 
             while (true) {
-                std::cout << "Modify another available time? (yes/no): ";
+                std::cout << "Modify another aspect of the movie? (yes/no): ";
                 std::getline(std::cin, input);
+                std::cout << '\n'; // Add a space
 
                 if (input == "yes") {
                     break;
                 } else if (input == "no") {
                     std::cout << "Movie modification completed.\n";
-                    saveDataToFile();
-
-                    saveDataToFile();
+                    saveDataToFile(); // Save the modified data to the file
                     return;
                 } else {
                     std::cout << "Invalid input! Enter 'yes' or 'no'.\n";
                 }
             }
-        } else {
-            std::cout << "Invalid index! Please enter a valid index.\n";
         }
-    } else {
-        std::cout << "Invalid input! Please enter a valid index.\n";
     }
 }
-}
-
 void viewMovieInfo() {
     loadDataFromFile();
     clearScreen();
@@ -930,4 +1054,5 @@ void viewMovieInfo() {
         viewMovieInfo(); // Call the function recursively to remain in movie information
     }
 }
+
 
